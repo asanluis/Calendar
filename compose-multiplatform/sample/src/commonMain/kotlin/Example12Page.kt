@@ -18,7 +18,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -53,18 +52,12 @@ fun Example12Page(close: () -> Unit = {}) {
         firstVisibleWeekDate = currentDate,
     )
 
-    LaunchedEffect(stateVertical) {
-        snapshotFlow { stateVertical.firstVisibleWeek }
-            .collect { week ->
-                stateHorizontal.scrollToWeek(week.days[0].date)
-            }
+    LaunchedEffect(key1 = stateVertical.firstVisibleWeek) {
+        stateHorizontal.scrollToWeek(stateVertical.firstVisibleWeek.days[0].date)
     }
 
-    LaunchedEffect(stateHorizontal) {
-        snapshotFlow { stateHorizontal.firstVisibleWeek }
-            .collect { week ->
-                stateVertical.scrollToWeek(week.days[0].date)
-            }
+    LaunchedEffect(key1 = stateHorizontal.firstVisibleWeek) {
+        stateVertical.scrollToWeek(stateHorizontal.firstVisibleWeek.days[0].date)
     }
 
     Column(
@@ -95,14 +88,14 @@ fun Example12Page(close: () -> Unit = {}) {
             VerticalWeekCalendar(
                 state = stateVertical,
                 dayContent = { day ->
-                        DayViewItem(
-                            date = day.date,
-                            selected = (selection == day.date),
-                        ) { clicked ->
-                            if (selection != clicked) {
-                                selection = clicked
-                            }
+                    DayViewItem(
+                        date = day.date,
+                        selected = (selection == day.date),
+                    ) { clicked ->
+                        if (selection != clicked) {
+                            selection = clicked
                         }
+                    }
                 },
             )
         }
