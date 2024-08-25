@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -66,6 +67,43 @@ internal fun WeekCalendarImpl(
                 }
                 weekFooter?.invoke(this, week)
             }
+        }
+    }
+}
+
+
+@Composable
+internal fun VerticalWeekCalendarImpl(
+    modifier: Modifier,
+    state: WeekCalendarState,
+    calendarScrollPaged: Boolean,
+    userScrollEnabled: Boolean,
+    reverseLayout: Boolean,
+    contentPadding: PaddingValues,
+    dayContent: @Composable BoxScope.(WeekDay) -> Unit,
+) {
+    LazyColumn(
+        modifier = modifier,
+        state = state.listState,
+        flingBehavior = flingBehavior(calendarScrollPaged, state.listState),
+        userScrollEnabled = userScrollEnabled,
+        reverseLayout = reverseLayout,
+        contentPadding = contentPadding,
+    ) {
+        items(
+            count = state.weekIndexCount,
+            key = { offset -> state.store[offset].days.first().date.toIso8601String() },
+        ) { offset ->
+            val week = state.store[offset]
+            week.days.forEach { day ->
+                Box(
+                    modifier = Modifier
+                        .fillParentMaxWidth()
+                ) {
+                    dayContent(day)
+                }
+            }
+
         }
     }
 }

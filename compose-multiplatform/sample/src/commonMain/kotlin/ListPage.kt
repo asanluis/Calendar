@@ -77,6 +77,11 @@ enum class Page(val title: String, val subtitle: String, val showToolBar: Boolea
         subtitle = "Vertical year calendar - Hidden past months with continuous scroll. Best suited for large screens.",
         showToolBar = true,
     ),
+    Example12(
+        title = "Example 12",
+        subtitle = "Week calendar - Single selection, paged scroll, visible item observation and syn week list.",
+        showToolBar = false,
+    ),
 }
 
 @Composable

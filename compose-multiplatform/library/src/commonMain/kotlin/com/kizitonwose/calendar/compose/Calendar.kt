@@ -17,6 +17,7 @@ import com.kizitonwose.calendar.compose.heatmapcalendar.HeatMapCalendarState
 import com.kizitonwose.calendar.compose.heatmapcalendar.HeatMapWeek
 import com.kizitonwose.calendar.compose.heatmapcalendar.HeatMapWeekHeaderPosition
 import com.kizitonwose.calendar.compose.heatmapcalendar.rememberHeatMapCalendarState
+import com.kizitonwose.calendar.compose.weekcalendar.VerticalWeekCalendarImpl
 import com.kizitonwose.calendar.compose.weekcalendar.WeekCalendarImpl
 import com.kizitonwose.calendar.compose.weekcalendar.WeekCalendarState
 import com.kizitonwose.calendar.compose.weekcalendar.rememberWeekCalendarState
@@ -259,6 +260,25 @@ public fun WeekCalendar(
     dayContent = dayContent,
     weekHeader = weekHeader,
     weekFooter = weekFooter,
+    contentPadding = contentPadding,
+)
+
+@Composable
+public fun VerticalWeekCalendar(
+    modifier: Modifier = Modifier,
+    state: WeekCalendarState = rememberWeekCalendarState(),
+    calendarScrollPaged: Boolean = true,
+    userScrollEnabled: Boolean = true,
+    reverseLayout: Boolean = false,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
+    dayContent: @Composable BoxScope.(WeekDay) -> Unit
+): Unit = VerticalWeekCalendarImpl(
+    modifier = modifier,
+    state = state,
+    calendarScrollPaged = calendarScrollPaged,
+    userScrollEnabled = userScrollEnabled,
+    reverseLayout = reverseLayout,
+    dayContent = dayContent,
     contentPadding = contentPadding,
 )
 
