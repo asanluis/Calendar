@@ -5,6 +5,7 @@ composeAndroid = "1.7.0-beta06"
 composeMultiplatform = "1.7.0-alpha01"
 espresso = "3.6.1"
 junit5 = "5.10.3"
+kotlinxDatetime = "0.4.1"
 kotlinxSerialization = "1.7.1"
 
 [libraries]

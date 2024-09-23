@@ -1,14 +1,20 @@
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
@@ -25,83 +31,84 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kizitonwose.calendar.compose.VerticalWeekCalendar
-import com.kizitonwose.calendar.compose.WeekCalendar
+import com.kizitonwose.calendar.compose.weekcalendar.StickyHeaderList
 import com.kizitonwose.calendar.compose.weekcalendar.rememberWeekCalendarState
+import com.kizitonwose.calendar.core.Week
 import com.kizitonwose.calendar.core.minusDays
 import com.kizitonwose.calendar.core.now
 import com.kizitonwose.calendar.core.plusDays
+import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format.Padding
+import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
-@OptIn(ExperimentalMaterial3Api::class)
+data class Event(
+    val title: String,
+    val location: String,
+    val startDateTime: LocalDateTime,
+    val endDateTime: LocalDateTime
+)
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun Example12Page(close: () -> Unit = {}) {
-    val currentDate = remember { LocalDate.now() }
-    val startDate = remember { currentDate.minusDays(500) }
-    val endDate = remember { currentDate.plusDays(500) }
-    var selection by remember { mutableStateOf(currentDate) }
-    val stateVertical = rememberWeekCalendarState(
-        startDate = startDate,
-        endDate = endDate,
-        firstVisibleWeekDate = currentDate,
-    )
-    val stateHorizontal = rememberWeekCalendarState(
-        startDate = startDate,
-        endDate = endDate,
-        firstVisibleWeekDate = currentDate,
+    val listState = rememberLazyListState()
+    val items = ('A'..'Z').map { it.toString() }
+    val events = mapOf(
+        "A" to listOf("Alex", "Antonio"),
+        "B" to listOf(), // B no tiene eventos
+        // ... agrega eventos para cada letra
+        "Z" to listOf("Zoe", "Zacarías")
     )
 
-    LaunchedEffect(key1 = stateVertical.firstVisibleWeek) {
-        stateHorizontal.scrollToWeek(stateVertical.firstVisibleWeek.days[0].date)
-    }
-
-    LaunchedEffect(key1 = stateHorizontal.firstVisibleWeek) {
-        stateVertical.scrollToWeek(stateHorizontal.firstVisibleWeek.days[0].date)
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White),
-    ) {
-        val visibleWeek = rememberFirstVisibleWeekAfterScroll(stateVertical)
-        ExampleToolbar(
-            title = getWeekPageTitle(visibleWeek),
-            navigationIcon = { NavigationIcon(onBackClick = close) },
-        )
-        Column(modifier = Modifier.fillMaxSize()) {
-            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-                WeekCalendar(
-                    modifier = Modifier.background(color = Colors.primary),
-                    state = stateHorizontal,
-                    dayContent = { day ->
-                        Day(day.date, isSelected = selection == day.date) { clicked ->
-                            if (selection != clicked) {
-                                selection = clicked
-                            }
-                        }
-                    },
-                )
+    StickyHeaderList(
+        state = listState,
+        modifier = Modifier,
+        headerMatcher = { itemInfo ->
+            itemInfo.key == null
+        },
+        stickyHeader = {
+            val headerItem = listState.layoutInfo.visibleItemsInfo.firstOrNull {
+                it.offset <= 0
             }
-
-            VerticalWeekCalendar(
-                state = stateVertical,
-                dayContent = { day ->
-                    DayViewItem(
-                        date = day.date,
-                        selected = (selection == day.date),
-                    ) { clicked ->
-                        if (selection != clicked) {
-                            selection = clicked
-                        }
-                    }
-                },
-            )
+            if (headerItem != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.LightGray)
+                ) {
+                    Text("Header: ${items[headerItem.index]}")
+                }
+            }
         }
-
+    ) {
+        LazyColumn(state = listState) {
+            items(items) { item ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(if (items.indexOf(item) % 2 == 0) Color.White else Color.Yellow)
+                        .padding(8.dp)
+                ) {
+                    Text(item)
+                    val itemEvents = events[item]
+                    if (itemEvents != null && itemEvents.isNotEmpty()) {
+                        itemEvents.forEach { event ->
+                            Text("- $event")
+                        }
+                    } else {
+                        Text("- No hay ejemplos")
+                    }
+                }
+            }
+        }
     }
 }
+
+
 
 private val dateFormatter by lazy {
     LocalDate.Format {
@@ -147,23 +154,72 @@ private fun Day(date: LocalDate, isSelected: Boolean, onClick: (LocalDate) -> Un
         }
     }
 }
-
 @Composable
-private fun DayViewItem(date: LocalDate, selected: Boolean, onDayClick: (LocalDate) -> Unit) {
+private fun DayViewItem(date: LocalDate, event: Any?, onDayClick: (LocalDate) -> Unit? = {}) {
     Card(
         onClick = { onDayClick(date) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
     ) {
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp)
-                .padding(8.dp),
-            contentAlignment = Alignment.CenterStart,
+                .padding(8.dp)
         ) {
-            Text(text = date.toString())
+
+            if (event != null) {
+                EventCard(event = (event as Event))
+            } else {
+                Text("No event for this date ${date.toString()}")
+            }
+        }
+    }
+}
+//@Composable
+//private fun DayViewItem(date: LocalDate, events: List<Event>, onDayClick: (LocalDate) -> Unit) {
+//    Card(
+//        onClick = { onDayClick(date) },
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .padding(8.dp),
+//    ) {
+//        Column(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(8.dp)
+//        ) {
+//            //Este texto hacerlo sticky
+//            Text(
+//                text = date.toString(),
+//                fontWeight = FontWeight.Bold,
+//                modifier = Modifier.padding(bottom = 8.dp)
+//            )
+//            if (events.isNotEmpty()) {
+//                events.forEach { event ->
+//                    EventCard(event = event)
+//                }
+//            } else {
+//              Text("No event for this date")
+//            }
+//        }
+//    }
+//}
+
+@Composable
+fun EventCard(event: Event) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(text = event.title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = "From: ${event.startDateTime}")
+            Text(text = "To: ${event.endDateTime}")
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = "Location: ${event.location}")
         }
     }
 }

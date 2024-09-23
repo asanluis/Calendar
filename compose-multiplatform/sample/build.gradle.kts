@@ -69,6 +69,7 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
 //            implementation("com.kizitonwose.calendar:compose-multiplatform:2.6.0-alpha02")
             implementation(project(":compose-multiplatform:library"))
+            implementation(libs.kotlinx.datetime)
             implementation(libs.jetbrains.compose.navigation)
         }
         val nonJvmMain by creating {
